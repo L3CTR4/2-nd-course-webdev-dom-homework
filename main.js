@@ -10,7 +10,7 @@ const deleteCommentButton = document.getElementById("delete-form-button");
 isFillInputs(nameInput.value, textInput.value);
 
 addCommentButton.addEventListener("click", () => {
-  let date = new Date();
+  let date = new Date().toLocaleString('ru-RU');
   addComment(nameInput.value, textInput.value, date);
   nameInput.value = "";
   textInput.value = "";
@@ -19,7 +19,7 @@ addCommentButton.addEventListener("click", () => {
 
 addForm.addEventListener("keyup", (event) => {
   if (event.key != "Enter" || !isFillInputs(nameInput.value, textInput.value)) return;
-  let date = new Date();
+  let date = new Date().toLocaleString('ru-RU');
   addComment(nameInput.value, textInput.value, date);
   nameInput.value = "";
   textInput.value = "";
@@ -74,7 +74,7 @@ function addComment(name, comment, date) {
         </div>
         <div class="comment-footer">
             <div class="likes">
-                <span class="likes-counter"></span>
+                <span class="likes-counter">0</span>
                 <button class="like-button"></button>
             </div>
         </div>
