@@ -26,6 +26,7 @@ let comments = [
 ];
 
 renderComments();
+isFillInputs();
 
 function renderComments() {
   const commentsDiv = document.querySelector(".comments");
@@ -100,10 +101,8 @@ addForm.addEventListener("keyup", (event) => {
 });
 
 deleteCommentButton.addEventListener("click", () => {
-  var lastComment = commentsDiv.lastElementChild;
-  if (lastComment !== null) {
-    commentsDiv.removeChild(lastComment);
-  }
+  comments.pop();
+  renderComments();
 });
 
 [nameInput, textInput].forEach((input) => {
@@ -113,7 +112,7 @@ deleteCommentButton.addEventListener("click", () => {
 });
 
 function isFillInputs(...inputs) {
-  let isFill = true;
+  let isFill = inputs.length > 0;
 
   let length = inputs.length;
   for (let i = 0; i < length; i++) {
@@ -135,21 +134,13 @@ function isFillInputs(...inputs) {
 }
 
 function addComment(name, comment, date) {
-  commentsDiv.innerHTML =
-    commentsDiv.innerHTML +
-    `<li class="comment">
-        <div class="comment-header">
-            <div>${name}</div>
-            <div>${date}</div>
-        </div>
-        <div class="comment-body">
-            <div class="comment-text">${comment}</div>
-        </div>
-        <div class="comment-footer">
-            <div class="likes">
-                <span class="likes-counter">0</span>
-                <button class="like-button"></button>
-            </div>
-        </div>
-    </li>`;
+  comments.push({
+    name: name,
+    date: date,
+    comment: comment,
+    likes: 0,
+    isLiked: false,
+    isEdit: false,
+  });
+  renderComments();
 }
