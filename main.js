@@ -34,7 +34,7 @@ function renderComments() {
   commentsDiv.innerHTML = comments
     .map((comment, index) => {
       return `
-      <li class="comment">
+      <li class="comment" data-index="${index}">
         <div class="comment-header">
           <div>${comment.name}</div>
           <div>${comment.date}</div>
@@ -43,7 +43,7 @@ function renderComments() {
           ${
             comment.isEdit
               ? `<textarea class="comment-text -edit">${comment.comment}</textarea>`
-              : `<div class="comment-text">${comment.comment}</div>`
+              : `<div class="comment-text">${quoteReplace(comment.comment)}</div>`
           }
         </div>
         <div class="comment-footer">
@@ -58,8 +58,23 @@ function renderComments() {
     })
     .join("");
 
+  document.querySelectorAll(".comment").forEach((comment) => {
+    comment.addEventListener("click", () => {
+      let index = comment.dataset.index;
+      textInput.value = `QUOTE_BEGIN${comments[index].name}:QUOTE_NEW_LINE${comments[index].comment}QUOTE_END`;
+    });
+  });
+
+  document.querySelectorAll("textarea.comment-text").forEach((commentText) => {
+    commentText.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+  });
+
   document.querySelectorAll(".like-button").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+
       let index = button.dataset.index;
       let comment = comments[index];
 
@@ -69,13 +84,16 @@ function renderComments() {
       renderComments();
     });
   });
+
   document.querySelectorAll(".edit-comment-button").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+
       let index = button.dataset.index;
       let comment = comments[index];
       if (comment.isEdit) {
         const newComment = button.closest(".comment").querySelector(".comment-text").value;
-        comment.comment = newComment;
+        comment.comment = safeString(newComment);
       }
       comment.isEdit = !comment.isEdit;
       renderComments();
@@ -135,12 +153,23 @@ function isFillInputs(...inputs) {
 
 function addComment(name, comment, date) {
   comments.push({
-    name: name,
+    name: safeString(name),
+    comment: safeString(comment),
     date: date,
-    comment: comment,
     likes: 0,
     isLiked: false,
     isEdit: false,
   });
   renderComments();
+}
+
+function safeString(string) {
+  return string.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+
+function quoteReplace(string) {
+  return string
+    .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
+    .replaceAll("QUOTE_NEW_LINE", "<br>")
+    .replaceAll("QUOTE_END", "</div>");
 }
