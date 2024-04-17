@@ -38,6 +38,7 @@ body {
 
 .comment {
   padding: 48px;
+  cursor: pointer;
 }
 
 .comment-header {
@@ -58,6 +59,18 @@ body {
 
 .comment-text {
   font-size: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  white-space: pre-line;
+}
+
+.quote {
+  font-size: 22px;
+  color: black;
+  background: rgb(229 245 255);
+  border-radius: 8px;
+  padding-left: 8px;
 }
 
 .-edit {
@@ -135,6 +148,7 @@ body {
 .add-form-row {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .add-form-button {
