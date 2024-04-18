@@ -1,6 +1,7 @@
 "use strict";
 
 const apiKey = "L3CTR4";
+let firstLoading = true;
 
 let nameInput = document.querySelector(".add-form-name");
 let textInput = document.querySelector(".add-form-text");
@@ -9,10 +10,18 @@ let deleteCommentButton = document.getElementById("delete-form-button");
 
 let comments = [];
 
+renderComments();
 getComments();
 
 function renderComments() {
+  console.log(comments);
   const commentsDiv = document.querySelector(".comments");
+
+  if (firstLoading) {
+    firstLoading = false;
+    commentsDiv.innerHTML = `<div class="add-form"><p>Комментарии загружаются...</p></div>`;
+    return;
+  }
 
   commentsDiv.innerHTML = comments
     .map((comment, index) => {
@@ -57,17 +66,28 @@ function renderComments() {
     });
   });
 
+  function delayLike(interval = 300) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, interval);
+    });
+  }
+
   document.querySelectorAll(".like-button").forEach((button) => {
     button.addEventListener("click", (event) => {
       event.stopPropagation();
 
+      button.classList.add(`-loading-like`);
+
       let index = button.dataset.index;
       let comment = comments[index];
 
-      comment.likes += comment.isLiked ? -1 : 1;
-      comment.isLiked = !comment.isLiked;
-
-      renderComments();
+      delayLike(2000).then(() => {
+        comment.likes += comment.isLiked ? -1 : 1;
+        comment.isLiked = !comment.isLiked;
+        renderComments();
+      });
     });
   });
 
