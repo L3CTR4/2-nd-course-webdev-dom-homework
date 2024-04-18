@@ -1,49 +1,33 @@
 "use strict";
 
-const addForm = document.querySelector(".add-form");
-const nameInput = document.querySelector(".add-form-name");
-const textInput = document.querySelector(".add-form-text");
-const addCommentButton = document.getElementById("add-form-button");
-const deleteCommentButton = document.getElementById("delete-form-button");
+const apiKey = "L3CTR4";
 
-let comments = [
-  {
-    name: "Глеб Фокин",
-    date: "12.02.22 12:18",
-    comment: "Это будет первый комментарий на этой странице",
-    likes: 3,
-    isLiked: false,
-    isEdit: false,
-  },
-  {
-    name: "Варвара Н.",
-    date: "13.02.22 19:22",
-    comment: "Мне нравится как оформлена эта страница! ❤",
-    likes: 75,
-    isLiked: true,
-    isEdit: false,
-  },
-];
+let nameInput = document.querySelector(".add-form-name");
+let textInput = document.querySelector(".add-form-text");
+let addCommentButton = document.getElementById("add-form-button");
+let deleteCommentButton = document.getElementById("delete-form-button");
 
-renderComments();
-isFillInputs();
+let comments = [];
+
+getComments();
 
 function renderComments() {
   const commentsDiv = document.querySelector(".comments");
 
   commentsDiv.innerHTML = comments
     .map((comment, index) => {
+      let date = new Date(comment.date);
       return `
       <li class="comment" data-index="${index}">
         <div class="comment-header">
-          <div>${comment.name}</div>
-          <div>${comment.date}</div>
+          <div>${comment.author.name}</div>
+          <div>${date.toLocaleString("ru-RU")}</div>
         </div>
         <div class="comment-body">
           ${
             comment.isEdit
-              ? `<textarea class="comment-text -edit">${comment.comment}</textarea>`
-              : `<div class="comment-text">${quoteReplace(comment.comment)}</div>`
+              ? `<textarea class="comment-text -edit">${comment.text}</textarea>`
+              : `<div class="comment-text">${quoteReplace(comment.text)}</div>`
           }
         </div>
         <div class="comment-footer">
@@ -58,10 +42,12 @@ function renderComments() {
     })
     .join("");
 
+  renderAddForm();
+
   document.querySelectorAll(".comment").forEach((comment) => {
     comment.addEventListener("click", () => {
       let index = comment.dataset.index;
-      textInput.value = `QUOTE_BEGIN${comments[index].name}:QUOTE_NEW_LINE${comments[index].comment}QUOTE_END`;
+      textInput.value = `QUOTE_BEGIN${comments[index].author.name}:QUOTE_NEW_LINE${comments[index].text}QUOTE_END`;
     });
   });
 
@@ -93,7 +79,7 @@ function renderComments() {
       let comment = comments[index];
       if (comment.isEdit) {
         const newComment = button.closest(".comment").querySelector(".comment-text").value;
-        comment.comment = safeString(newComment);
+        comment.text = safeString(newComment);
       }
       comment.isEdit = !comment.isEdit;
       renderComments();
@@ -101,33 +87,58 @@ function renderComments() {
   });
 }
 
-addCommentButton.addEventListener("click", () => {
-  let date = new Date().toLocaleString("ru-RU");
-  addComment(nameInput.value, textInput.value, date);
-  nameInput.value = "";
-  textInput.value = "";
-  isFillInputs(nameInput.value, textInput.value);
-});
+function renderAddForm(isLoading) {
+  const addForm = document.querySelector(".add-form");
 
-addForm.addEventListener("keyup", (event) => {
-  if (event.key != "Enter" || !isFillInputs(nameInput.value, textInput.value)) return;
-  let date = new Date().toLocaleString("ru-RU");
-  addComment(nameInput.value, textInput.value, date);
-  nameInput.value = "";
-  textInput.value = "";
-  isFillInputs(nameInput.value, textInput.value);
-});
+  if (isLoading) {
+    addForm.innerHTML = `
+    <p>Комментарий добавляется</p>
+    `;
+    return;
+  }
 
-deleteCommentButton.addEventListener("click", () => {
-  comments.pop();
-  renderComments();
-});
+  addForm.innerHTML = `
+  <input type="text" class="add-form-name" placeholder="Введите ваше имя" />
+  <textarea type="textarea" class="add-form-text" placeholder="Введите ваш коментарий" rows="4"></textarea>
+  <div class="add-form-row">
+    <button id="delete-form-button" class="add-form-button">Удалить последний комментарий</button>
+    <button id="add-form-button" class="add-form-button">Написать</button>
+  </div>
+  `;
 
-[nameInput, textInput].forEach((input) => {
-  input.addEventListener("input", () => {
+  nameInput = document.querySelector(".add-form-name");
+  textInput = document.querySelector(".add-form-text");
+  addCommentButton = document.getElementById("add-form-button");
+  deleteCommentButton = document.getElementById("delete-form-button");
+
+  addCommentButton.addEventListener("click", () => {
+    let date = new Date().toLocaleString("ru-RU");
+    addComment(nameInput.value, textInput.value);
+    nameInput.value = "";
+    textInput.value = "";
     isFillInputs(nameInput.value, textInput.value);
   });
-});
+
+  addForm.addEventListener("keyup", (event) => {
+    if (event.key != "Enter" || !isFillInputs(nameInput.value, textInput.value)) return;
+    let date = new Date().toLocaleString("ru-RU");
+    addComment(nameInput.value, textInput.value, date);
+    nameInput.value = "";
+    textInput.value = "";
+    isFillInputs(nameInput.value, textInput.value);
+  });
+
+  deleteCommentButton.addEventListener("click", () => {
+    comments.pop();
+    renderComments();
+  });
+
+  [nameInput, textInput].forEach((input) => {
+    input.addEventListener("input", () => {
+      isFillInputs(nameInput.value, textInput.value);
+    });
+  });
+}
 
 function isFillInputs(...inputs) {
   let isFill = inputs.length > 0;
@@ -151,18 +162,6 @@ function isFillInputs(...inputs) {
   }
 }
 
-function addComment(name, comment, date) {
-  comments.push({
-    name: safeString(name),
-    comment: safeString(comment),
-    date: date,
-    likes: 0,
-    isLiked: false,
-    isEdit: false,
-  });
-  renderComments();
-}
-
 function safeString(string) {
   return string.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 }
@@ -172,4 +171,36 @@ function quoteReplace(string) {
     .replaceAll("QUOTE_BEGIN", "<div class='quote'>")
     .replaceAll("QUOTE_NEW_LINE", "<br>")
     .replaceAll("QUOTE_END", "</div>");
+}
+
+// API
+function getComments() {
+  fetch(`https://wedev-api.sky.pro/api/v1/${apiKey}/comments`, {
+    method: `GET`,
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((responseData) => {
+      comments = responseData.comments;
+      renderComments();
+      isFillInputs();
+    });
+}
+
+function addComment(name, text) {
+  renderAddForm(true);
+  fetch(`https://wedev-api.sky.pro/api/v1/${apiKey}/comments`, {
+    method: `POST`,
+    body: JSON.stringify({
+      name: safeString(name),
+      text: safeString(text),
+    }),
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((responseData) => {
+      getComments();
+    });
 }
